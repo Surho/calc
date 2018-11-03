@@ -5,15 +5,17 @@ class Calculator extends Component {
         super({});
         this.value1 = null;
         this.value2 = null;
-        this.currentValue = null;
+        
         this.operationChosen = false;
         this.lastOperation = null;
-        this.currentOperation = null;
-        this._currentDidgit = 0;
+        this.decimalAccuracy = null;
+
         this._renderInterface();
         this._getElements();
         this._initEvents();
-        // console.log(this._formatNumber('12311231321223'));
+
+        console.log(this._formatDecimal(121122334.455667789));
+        console.log('121122334455667789'.length);
     }
 
     _renderInterface() {
@@ -80,56 +82,40 @@ class Calculator extends Component {
         return false;
     }
 
-    _onOperationButtonClick(button, operation) {
+    _onOperationButtonClick(operation, button) {
         this.operationChosen = true;
-
-        let highlighted = document.querySelector('.calculator__highlighted');
-
-        if(highlighted) {
-            highlighted.classList.remove('calculator__highlighted');
-        }
-        button.classList.add('calculator__highlighted');
+        this._removeHighlight();
+        this._addHighlight(button)
 
         if(!this.value1) {
-            this.value1 = +this.calculatorDisplay.textContent;
-            this.lastOperation = operation;
-            return;
-        }
-
-        if(!this.value2) {
-            this.value2 = +this.calculatorDisplay.textContent;
+            this.value1 = +this.calculatorDisplay .textContent;
         }
 
         if(this.value1 && this.value2) {
-
-            if(this.lastOperation !== operation) {
-                this.currentValue = this._equals(this.value1, this.value2, this.lastOperation);
-                this.calculatorDisplay.textContent = this.currentValue;
-                this.value1 = this.currentValue;
-                this.value2 = null;
-                this.lastOperation = operation;
-                return;
-            }
-
-            this.currentValue = this._equals(this.value1, this.value2, operation);
-            this.calculatorDisplay.textContent = this.currentValue;
-            this.value1 = this.currentValue;
+            this.calculatorDisplay.textContent = this._equals(this.value1, this.value2, operation);
+            this.value1 = +this.calculatorDisplay.textContent;
             this.value2 = null;
+        }
+
+        if(operation !== '=') {
+            this.lastOperation = operation;
         }
     }
 
     _onNumberButtonClick(button) {
-
-        if(this.operationChosen) {
-            this.operationChosen = false;
+        if(this.operationChosen === true) {
             this._clearField();
+            this.operationChosen = false;
         }
 
-        this.calculatorDisplay.textContent += button.value;
+        this.calculatorDisplay .textContent += button.value;
+
+        if(this.value1) {
+            this.value2 = +this.calculatorDisplay .textContent;
+        }
     }
 
     _initEvents() {
-
         this.element.addEventListener('click', (evt) => {
 
             let target = evt.target;
@@ -139,27 +125,64 @@ class Calculator extends Component {
             }
 
             if(target.dataset.operation) {
-                this._onOperationButtonClick(target, target.dataset.operation);
+                if(target.dataset.operation === '=' && this.value1 && this.value2) {
+                    this._onOperationButtonClick(this.lastOperation, target);
+                    return;
+                }
+                this._onOperationButtonClick(target.dataset.operation, target);
             }
 
             if(target.dataset.action === 'clear') {
                 this._onClearButtonClick();
             }
+
+            if(target.dataset.action === 'percent') {
+                this.calculatorDisplay .textContent = +this.calculatorDisplay .textContent / 100;
+            }
+
+
         });
     }
 
     _clearField() {
-        let highlighted = document.querySelector('.calculator__highlighted');
-        if(highlighted) {
-            highlighted.classList.remove('calculator__highlighted');
-        }
+        this._removeHighlight();
         this.calculatorDisplay.textContent = '';
         return false;
     };
 
+    _removeHighlight() {
+        let highlighted = document.querySelector('.calculator__highlighted');
+        if(highlighted) {
+            highlighted.classList.remove('calculator__highlighted');
+        }
+    }
+
+    _addHighlight(elem) {
+        elem.classList.add('calculator__highlighted');
+    }
+
     _resetValues() {
         this.value1 = null;
         this.value2 = null;
+    }
+
+    checkDecimalNeeded(number1, number2) {
+        number1 = number1.split('.');
+        number2 = number2.split('.');
+    }
+
+    _formatDecimal(number) {
+        number = String(number).split('.');
+        
+        if(number[0].length > 15) {
+            number[0] = `${number[0]}e^${(number[0].length - 15)}`
+        }
+
+        if(number[1].length > 10) {
+            number[1]
+        }
+
+        return number;  
     }
 }
 
