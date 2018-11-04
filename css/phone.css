@@ -1,0 +1,38 @@
+.phone {
+    position: relative;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 280px;
+    height: 590px;
+    border:1px solid black;
+    border-radius: 35px;
+}
+
+.phone::after {
+    content: "";
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    width: 45px;
+    height: 45px;
+    border: 1px solid black;
+    border-radius: 50%;
+    transform: translate(-50%);
+    background-color: lightgrey;
+}
+
+.phone__inner {
+    width: 95%;
+    height: 98%;
+    border: 1px solid black;
+    border-radius: 35px;
+}
+
+.phone__display {
+    height: 80%;
+    width: 92%;
+    border: 1px solid black;
+    margin: 0 auto;
+    margin-top: 50px;
+}

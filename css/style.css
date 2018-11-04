@@ -1,12 +1,14 @@
 .calculator {
-    display: inline-block;
-    width: 270px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;   
 }
 
 .calculator__interface {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    height: 85%;
 }
 
 .calculator__wrapper {
@@ -14,7 +16,7 @@
 }
 
 .calculator__operations {
-    width: 23%;
+    width: 27%;
 }
 
 .calculator__operations button {
@@ -22,21 +24,40 @@
 }
 
 button {
+    flex-grow: 1;
     box-sizing: border-box;
-    width: 30%;
-    border-radius: 5px;
+    width: 33%;
+    height: 25%;
     padding: 10px;
-    height: 40px;
-    margin-bottom: 5px;
     cursor: pointer;
     outline: none;
+    font-size: 24px;
+}
+
+.calculator__operations button {
+    height: 20%;
+    background-color: orange;
+    color: white;
+    transition: all 0.1s linear;
+}
+
+.calculator__operations button.calculator__highlighted {
+    background-color: white;
+    color: orange;
+
+}
+
+.calculator__actions button {
+    background-color: grey;
 }
 
 button:nth-child(10) {
-    width: 65%;
+    width: 66%;
 }
 
 .calculator__actions {
+    width: 100%;
+    height: 20%;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -44,6 +65,7 @@ button:nth-child(10) {
 
 .calculator__actions button {
     width: 30%;
+    height: 100%;
 }
 
 button:hover {
@@ -53,15 +75,13 @@ button:hover {
 .calculator__current-value {
     box-sizing: border-box;
     width: 100%;
-    height: 40px;
-    margin-bottom: 10px;
+    height: 15%;
     padding-top:10px;
     padding-left: 10px;
     padding-right: 10px;
     padding-bottom: 15px;
-    font-size: 20px;
+    font-size: 32px;
     border: 1px solid black;
-    border-radius: 5px;
     text-align: right;
 }
 
@@ -70,6 +90,7 @@ button:hover {
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: flex-start;
+    height: 80%;
 }
 
 .calculator__highlighted {

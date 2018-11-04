@@ -1,24 +1,24 @@
 import Component from './component.js';
 
 class Calculator extends Component {
-    constructor() {
+    constructor(container) {
         super({});
         this.value1 = null;
         this.value2 = null;
         
         this.operationChosen = false;
         this.lastOperation = null;
-        this.decimalAccuracy = 3;
+        this.decimalAccuracy = 1;
 
-        this._renderInterface();
+        this._renderInterface(container);
         this._getElements();
         this._initEvents();
     }
 
-    _renderInterface() {
-        let container = document.createElement('DIV');
-        container.classList.add("calculator");
-        container.innerHTML = `
+    _renderInterface(container) {
+        let calculator = document.createElement('DIV');
+        calculator.classList.add("calculator");
+        calculator.innerHTML = `
         <div class="calculator__current-value"></div>
             <div class="calculator__interface">
                 <div class="calculator__wrapper">
@@ -50,7 +50,7 @@ class Calculator extends Component {
                 </div>
             </div>
          `;
-        document.body.appendChild(container);        
+         container.appendChild(calculator);        
     }
 
     _equals(value1, value2, symbol) {
@@ -204,4 +204,5 @@ class Calculator extends Component {
     }
 }
 
-const calc = new Calculator();
+const phoneDisplay = document.querySelector('.phone__display');
+const calc = new Calculator(phoneDisplay);
