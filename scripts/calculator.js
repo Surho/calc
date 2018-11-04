@@ -8,14 +8,11 @@ class Calculator extends Component {
         
         this.operationChosen = false;
         this.lastOperation = null;
-        this.decimalAccuracy = null;
+        this.decimalAccuracy = 3;
 
         this._renderInterface();
         this._getElements();
         this._initEvents();
-
-        console.log(this._formatDecimal(121122334.455667789));
-        console.log('121122334455667789'.length);
     }
 
     _renderInterface() {
@@ -76,10 +73,18 @@ class Calculator extends Component {
         this.calculatorDisplay = this.element.querySelector('.calculator__current-value');
     }
 
-    _onClearButtonClick() {
+    _onClearClick() {
         this._clearField();
         this._resetValues();
         return false;
+    }
+
+    _onSymbolClick() {
+        if(this.calculatorDisplay.textContent.indexOf('-') + 1) {
+            this.calculatorDisplay.textContent = this.calculatorDisplay.textContent.slice(1);
+        } else {
+            this.calculatorDisplay.textContent = -this.calculatorDisplay.textContent;
+        }
     }
 
     _onOperationButtonClick(operation, button) {
@@ -92,7 +97,8 @@ class Calculator extends Component {
         }
 
         if(this.value1 && this.value2) {
-            this.calculatorDisplay.textContent = this._equals(this.value1, this.value2, operation);
+            this._checkDecimalAccuracy(this.value1, this.value2);
+            this.calculatorDisplay.textContent = this._formatDecimal(this._equals(this.value1, this.value2, operation));;         
             this.value1 = +this.calculatorDisplay.textContent;
             this.value2 = null;
         }
@@ -108,7 +114,9 @@ class Calculator extends Component {
             this.operationChosen = false;
         }
 
-        this.calculatorDisplay .textContent += button.value;
+        if(this.calculatorDisplay .textContent.length <= 12) {
+            this.calculatorDisplay .textContent += button.value;
+        }
 
         if(this.value1) {
             this.value2 = +this.calculatorDisplay .textContent;
@@ -133,14 +141,16 @@ class Calculator extends Component {
             }
 
             if(target.dataset.action === 'clear') {
-                this._onClearButtonClick();
+                this._onClearClick();
+            }
+
+            if(target.dataset.action === 'symbol') {
+                this._onSymbolClick();
             }
 
             if(target.dataset.action === 'percent') {
                 this.calculatorDisplay .textContent = +this.calculatorDisplay .textContent / 100;
             }
-
-
         });
     }
 
@@ -166,23 +176,31 @@ class Calculator extends Component {
         this.value2 = null;
     }
 
-    checkDecimalNeeded(number1, number2) {
-        number1 = number1.split('.');
-        number2 = number2.split('.');
+    _checkDecimalAccuracy(number1, number2) {
+        let number1Decimal = ((String(number1)).indexOf('.') + 1) ? String(number1).split('.')[1].length : 0;
+        let number2Decimal = ((String(number2)).indexOf('.') + 1) ? String(number2).split('.')[1].length : 0;
+    
+        this.decimalAccuracy = Math.max(number1Decimal, number2Decimal);
+        return this.decimalAccuracy;
     }
 
     _formatDecimal(number) {
+        if(String(number).indexOf('e') + 1) {
+            return number;
+        }
+
         number = String(number).split('.');
-        
-        if(number[0].length > 15) {
-            number[0] = `${number[0]}e^${(number[0].length - 15)}`
+
+        if(number[0].length >= 12) {
+            number[0] = number[0].slice(0, 12);
+            number[0] = `${number[0]}e^${(number[0].length - 12)}`;
         }
 
-        if(number[1].length > 10) {
-            number[1]
+        if(number[1]) {
+            number[1] = number[1].slice(0, this.decimalAccuracy);
         }
 
-        return number;  
+       return number.join('.');  
     }
 }
 
