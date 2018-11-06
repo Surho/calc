@@ -3,6 +3,7 @@ import Component from './component.js';
 class Calculator extends Component {
     constructor(container) {
         super({});
+        this.defaultFontSize = 32;
         this.value1 = null;
         this.value2 = null;
         
@@ -128,6 +129,10 @@ class Calculator extends Component {
 
             let target = evt.target;
 
+            if(this.element.style.fontSize !== this.defaultFontSize) {
+                this._normaliseFontSize();
+            }
+
             if(target.value) {
                 this._onNumberButtonClick(target);
             }
@@ -185,22 +190,38 @@ class Calculator extends Component {
     }
 
     _formatDecimal(number) {
+
         if(String(number).indexOf('e') + 1) {
+            this._reduceFontSize();
             return number;
         }
 
         number = String(number).split('.');
+        //something wrong with the prefix
+        debugger;
 
-        if(number[0].length >= 12) {
-            number[0] = number[0].slice(0, 12);
-            number[0] = `${number[0]}e^${(number[0].length - 12)}`;
+        if(number[0].length > 10) {
+            number[0] = number[0]/Math.pow(10, number[0].length - 1);
+            let prefix = `e+${String(number[0]).length}`;
+            return number[0] + prefix;
         }
-
+        
         if(number[1]) {
-            number[1] = number[1].slice(0, this.decimalAccuracy);
+            number[1] = number[1].slice(0, this.decimalAccuracy + 1);
+            number[1] = (Math.round(number[1]/10));
         }
 
-       return number.join('.');  
+        return number.join('.');
+    }
+
+    _reduceFontSize(size = 20)  {
+        this.fontSize = size;
+        this.calculatorDisplay.style.fontSize = this.fontSize + 'px';
+    }
+
+    _normaliseFontSize() {
+        this.fontSize = 32;
+        this.calculatorDisplay.style.fontSize = this.fontSize + 'px';
     }
 }
 
