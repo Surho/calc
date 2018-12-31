@@ -4,6 +4,9 @@ class Calculator extends Component {
     constructor(container) {
         super({});
         this.defaultFontSize = 32;
+        this.dot = false;
+        this.fieldClear = false;
+
         this.value1 = null;
         this.value2 = null;
         
@@ -17,10 +20,10 @@ class Calculator extends Component {
     }
 
     _renderInterface(container) {
-        let calculator = document.createElement('DIV');
+        const calculator = document.createElement('DIV');
         calculator.classList.add("calculator");
         calculator.innerHTML = `
-        <div class="calculator__current-value"></div>
+        <div class="calculator__current-value">0</div>
             <div class="calculator__interface">
                 <div class="calculator__wrapper">
                     <div class="calculator__actions">
@@ -91,22 +94,33 @@ class Calculator extends Component {
     _onOperationButtonClick(operation, button) {
         this.operationChosen = true;
         this._removeHighlight();
-        this._addHighlight(button)
+        this._addHighlight(button);
 
         if(!this.value1) {
-            this.value1 = +this.calculatorDisplay .textContent;
+            this.value1 = +this.calculatorDisplay.textContent;
         }
 
         if(this.value1 && this.value2) {
-            this._checkDecimalAccuracy(this.value1, this.value2);
-            this.calculatorDisplay.textContent = this._formatDecimal(this._equals(this.value1, this.value2, operation));;         
-            this.value1 = +this.calculatorDisplay.textContent;
-            this.value2 = null;
+            // this._checkDecimalAccuracy(this.value1, this.value2);
+
+            if(this.lastOperation && this.lastOperation !== operation) {
+                this._showResult(this.value1, this.value2, this.lastOperation);
+                this.lastOperation = operation;
+                return;
+            }
+            this._showResult(this.value1, this.value2, operation);
         }
 
-        if(operation !== '=') {
+        if (operation !== '=') {
             this.lastOperation = operation;
         }
+    }
+
+    _showResult(number1, number2, operation) {
+        this.calculatorDisplay.textContent = this._equals(number1, number2, operation);  
+        this.calculatorDisplay.textContent  = this._trimZeroSequance(this.calculatorDisplay.textContent);
+        this.value1 = +this.calculatorDisplay.textContent;
+        this.value2 = null;
     }
 
     _onNumberButtonClick(button) {
@@ -115,12 +129,30 @@ class Calculator extends Component {
             this.operationChosen = false;
         }
 
-        if(this.calculatorDisplay .textContent.length <= 12) {
-            this.calculatorDisplay .textContent += button.value;
+        if(button.value === "0" && this.calculatorDisplay.textContent[0] === '0' && !this.dot) {
+                return;
+        };
+
+        if(!this.fieldClear) {
+            this.calculatorDisplay.textContent = '';
+            this.fieldClear = true;
+        } 
+    
+        if(button.value !== '.' && this.calculatorDisplay.textContent.length <= 12) {
+            this.calculatorDisplay.textContent += button.value;
+        }
+
+        if(button.value === '.' && !this.dot && this.calculatorDisplay.textContent === '') {
+            this.calculatorDisplay.textContent = '0.';
+            this.dot = true;
+        }  
+
+        if(button.value === '.' && !this.dot) {
+            this.calculatorDisplay.textContent += button.value;
         }
 
         if(this.value1) {
-            this.value2 = +this.calculatorDisplay .textContent;
+            this.value2 = +this.calculatorDisplay.textContent;
         }
     }
 
@@ -161,7 +193,9 @@ class Calculator extends Component {
 
     _clearField() {
         this._removeHighlight();
-        this.calculatorDisplay.textContent = '';
+        this.calculatorDisplay.textContent = '0';
+        this.fieldClear = false;
+        this.dot = false;
         return false;
     };
 
@@ -179,40 +213,63 @@ class Calculator extends Component {
     _resetValues() {
         this.value1 = null;
         this.value2 = null;
+        this.lastOperation = null;
     }
 
-    _checkDecimalAccuracy(number1, number2) {
-        let number1Decimal = ((String(number1)).indexOf('.') + 1) ? String(number1).split('.')[1].length : 0;
-        let number2Decimal = ((String(number2)).indexOf('.') + 1) ? String(number2).split('.')[1].length : 0;
     
-        this.decimalAccuracy = Math.max(number1Decimal, number2Decimal);
-        return this.decimalAccuracy;
+
+    _checkRepeatedSequance(numberString) {
+        let sequanceCount = 0;
+        let sequanceStartsAt = null;
+        let sequanceOf = null;
+
+        if(typeof numberString !== 'string') {
+            throw new Error('arguments must be a string');
+        }
+
+        const dotPosition = numberString.indexOf('.');
+        const decimalPart = numberString.slice(dotPosition + 1);
+
+        for(let i = 0; i < decimalPart.length; i++) {
+            if(!sequanceOf) {
+                sequanceOf = decimalPart[i];
+            }
+            if(decimalPart[i] === sequanceOf) {
+                if(sequanceStartsAt === null) {
+                    sequanceStartsAt = i;
+                };
+                sequanceCount++
+            } else {
+                if(sequanceCount >= 10) {
+                    sequanceCount = {count: sequanceCount, sequanceSymbol: sequanceOf};
+                    return sequanceCount;
+                }
+                sequanceStartsAt = null;
+                sequanceOf = null;
+                sequanceCount = 0;
+                continue;
+            }
+        }
+
+        return {
+            dotPosition: dotPosition,
+            sequanceCount: sequanceCount,
+            sequanceStartsAt: sequanceStartsAt
+        }
     }
 
-    _formatDecimal(number) {
+    _trimRepeatedSequance(number) {
+        let sequanceCheck = this._checkRepeatedSequance(number);
+        let sequanceCount = sequanceCheck.sequanceCount;
+        let sequanceStartsAt = sequanceCheck.zeroSequanceStartsAt;
+        let dotPosition = sequanceCheck.dotPosition;
 
-        if(String(number).indexOf('e') + 1) {
-            this._reduceFontSize();
-            return number;
+        if(sequance >= 10) {
+           number = number.slice(dotPosition - 1, zeroStartsAt);
         }
-
-        number = String(number).split('.');
-        //something wrong with the prefix
-        debugger;
-
-        if(number[0].length > 10) {
-            number[0] = number[0]/Math.pow(10, number[0].length - 1);
-            let prefix = `e+${String(number[0]).length}`;
-            return number[0] + prefix;
-        }
-        
-        if(number[1]) {
-            number[1] = number[1].slice(0, this.decimalAccuracy + 1);
-            number[1] = (Math.round(number[1]/10));
-        }
-
-        return number.join('.');
+        return number;
     }
+
 
     _reduceFontSize(size = 20)  {
         this.fontSize = size;
@@ -223,7 +280,66 @@ class Calculator extends Component {
         this.fontSize = 32;
         this.calculatorDisplay.style.fontSize = this.fontSize + 'px';
     }
+
 }
 
 const phoneDisplay = document.querySelector('.phone__display');
 const calc = new Calculator(phoneDisplay);
+
+// function format(number) {
+//     if(number < 1000) {
+//         return number;
+//     };
+
+//     number = number.toString();
+//     let number_length = number.length;
+//     let parts_number = Math.floor(number.length/3);
+//     let formated = '';
+//     let start = -number.length;
+
+//     if(number_length % 3 !== 0) {
+//         formated = number.slice(-1, (number_length - (parts_number * 3)));
+//         console.log(formated);
+//     };
+    
+//     while(parts_number > 0) {
+//         formated = formated + ' ' + number.substr(start, 3);
+//         start += 3;
+//         --parts_number;
+//     };
+//     return formated 
+// };
+
+console.log(calc._checkRepeatedSequance('0.9999999999994'));
+// console.log(calc._trimZeroSequance("0.300004000000000004"));
+
+// _checkDecimalAccuracy(number1, number2) {
+        // let number1Decimal = ((String(number1)).indexOf('.') + 1) ? String(number1).split('.')[1].length : 0;
+        // let number2Decimal = ((String(number2)).indexOf('.') + 1) ? String(number2).split('.')[1].length : 0;
+        
+        // this.decimalAccuracy = Math.max(number1Decimal, number2Decimal);
+        // return this.decimalAccuracy;
+    // }
+
+    // _formatDecimal(number) {
+
+        // if(String(number).indexOf('e') + 1) {
+        //     this._reduceFontSize();
+        //     return number;
+        // }
+
+        // number = String(number).split('.');
+
+        // if(number[0].length > 10) {
+        //     number[0] = number[0]/Math.pow(10, number[0].length - 1);
+        //     let prefix = `e+${String(number[0]).length}`;
+        //     return number[0] + prefix;
+        // }
+
+        // if(this._checkZeroSequance(number[1])) {
+        //     number[1]
+        // }
+
+        // number = number.join('.');
+   
+    // }
