@@ -118,7 +118,7 @@ class Calculator extends Component {
 
     _showResult(number1, number2, operation) {
         this.calculatorDisplay.textContent = this._equals(number1, number2, operation);  
-        this.calculatorDisplay.textContent  = this._trimZeroSequance(this.calculatorDisplay.textContent);
+        this.calculatorDisplay.textContent  = this._trimRepeatedSequance(this.calculatorDisplay.textContent);
         this.value1 = +this.calculatorDisplay.textContent;
         this.value2 = null;
     }
@@ -140,6 +140,7 @@ class Calculator extends Component {
     
         if(button.value !== '.' && this.calculatorDisplay.textContent.length <= 12) {
             this.calculatorDisplay.textContent += button.value;
+            this.calculatorDisplay.textContent = this.calculatorDisplay.textContent;
         }
 
         if(button.value === '.' && !this.dot && this.calculatorDisplay.textContent === '') {
@@ -149,6 +150,7 @@ class Calculator extends Component {
 
         if(button.value === '.' && !this.dot) {
             this.calculatorDisplay.textContent += button.value;
+            this.dot = true;
         }
 
         if(this.value1) {
@@ -222,13 +224,20 @@ class Calculator extends Component {
         let sequanceCount = 0;
         let sequanceStartsAt = null;
         let sequanceOf = null;
+        let sequance = null;
 
         if(typeof numberString !== 'string') {
             throw new Error('arguments must be a string');
         }
 
         const dotPosition = numberString.indexOf('.');
-        const decimalPart = numberString.slice(dotPosition + 1);
+        const numberParts = numberString.split('.');
+        const decimalPart = numberParts[1];
+        const integerPart = numberParts[0];
+        
+        if(!decimalPart) {
+            return false;
+        }
 
         for(let i = 0; i < decimalPart.length; i++) {
             if(!sequanceOf) {
@@ -236,37 +245,39 @@ class Calculator extends Component {
             }
             if(decimalPart[i] === sequanceOf) {
                 if(sequanceStartsAt === null) {
-                    sequanceStartsAt = i;
+                    sequanceStartsAt = integerPart.length + i;
                 };
                 sequanceCount++
             } else {
-                if(sequanceCount >= 10) {
-                    sequanceCount = {count: sequanceCount, sequanceSymbol: sequanceOf};
-                    return sequanceCount;
+                if(sequanceCount < 10) {
+                    sequanceStartsAt = null;
+                    sequanceOf = decimalPart[i];
+                    sequanceCount = 1;
+                    continue;
                 }
-                sequanceStartsAt = null;
-                sequanceOf = null;
-                sequanceCount = 0;
-                continue;
             }
         }
 
-        return {
-            dotPosition: dotPosition,
-            sequanceCount: sequanceCount,
-            sequanceStartsAt: sequanceStartsAt
-        }
+        return sequance = {
+            count: sequanceCount, 
+            symbol: sequanceOf, 
+            startsAt: sequanceStartsAt,
+            dotPosition: dotPosition
+        };
     }
 
     _trimRepeatedSequance(number) {
-        let sequanceCheck = this._checkRepeatedSequance(number);
-        let sequanceCount = sequanceCheck.sequanceCount;
-        let sequanceStartsAt = sequanceCheck.zeroSequanceStartsAt;
-        let dotPosition = sequanceCheck.dotPosition;
+        let sequance = this._checkRepeatedSequance(number);
+        let numberDigit = Math.pow(10, sequance.startsAt - sequance.dotPosition);
 
-        if(sequance >= 10) {
-           number = number.slice(dotPosition - 1, zeroStartsAt);
+        if(sequance.count >= 10 && sequance.symbol === "0") {
+           number = number.slice(sequance.dotPosition - 1, sequance.startsAt);
         }
+
+        if(sequance.count >= 10 && sequance.symbol === "9") {
+            number = (Math.round(number * numberDigit))/numberDigit;
+         }
+
         return number;
     }
 
@@ -280,38 +291,14 @@ class Calculator extends Component {
         this.fontSize = 32;
         this.calculatorDisplay.style.fontSize = this.fontSize + 'px';
     }
-
 }
+
+
 
 const phoneDisplay = document.querySelector('.phone__display');
 const calc = new Calculator(phoneDisplay);
 
-// function format(number) {
-//     if(number < 1000) {
-//         return number;
-//     };
 
-//     number = number.toString();
-//     let number_length = number.length;
-//     let parts_number = Math.floor(number.length/3);
-//     let formated = '';
-//     let start = -number.length;
-
-//     if(number_length % 3 !== 0) {
-//         formated = number.slice(-1, (number_length - (parts_number * 3)));
-//         console.log(formated);
-//     };
-    
-//     while(parts_number > 0) {
-//         formated = formated + ' ' + number.substr(start, 3);
-//         start += 3;
-//         --parts_number;
-//     };
-//     return formated 
-// };
-
-console.log(calc._checkRepeatedSequance('0.9999999999994'));
-// console.log(calc._trimZeroSequance("0.300004000000000004"));
 
 // _checkDecimalAccuracy(number1, number2) {
         // let number1Decimal = ((String(number1)).indexOf('.') + 1) ? String(number1).split('.')[1].length : 0;
@@ -342,4 +329,23 @@ console.log(calc._checkRepeatedSequance('0.9999999999994'));
 
         // number = number.join('.');
    
+    // }
+    
+
+    // _formatNumber(number) {
+    //     let dotIndex = null;
+    //     let decimalPart = null;
+    //     if(this.dot) {
+    //         dotIndex = number.indexOf('.');
+    //         decimalPart = number.slice(dotIndex); 
+    //     }
+    //     let dotIndex = number.indexOf('.');
+    //     let decimalPart = number.slice(dotIndex);
+    //     number = +number;
+    //     number = number.toLocaleString() + decimalPart;
+    // }
+
+    // _formatBack(numberString) {
+    //     numberString = ((numberString.split(" ")).join(''));
+    //     return numberString;
     // }
